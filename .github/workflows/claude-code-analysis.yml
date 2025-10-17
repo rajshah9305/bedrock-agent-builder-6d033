@@ -1,0 +1,231 @@
+name: Claude Haiku Code Analysis
+
+on:
+  push:
+    branches: [ main, develop, staging ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # Run daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch: # Allow manual triggers
+
+jobs:
+  claude-analysis:
+    name: Claude Haiku Code Analysis
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+      checks: write
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0 # Fetch full history for better analysis
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: |
+        npm ci
+        npm install nodemon --save-dev
+    
+    - name: Verify AWS credentials
+      run: |
+        if [ -z "$AWS_ACCESS_KEY_ID" ] || [ -z "$AWS_SECRET_ACCESS_KEY" ]; then
+          echo "❌ AWS credentials not configured"
+          echo "Please set AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY secrets"
+          exit 1
+        fi
+        echo "✅ AWS credentials configured"
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    
+    - name: Run Claude Code Analysis
+      id: claude-analysis
+      run: |
+        echo "🚀 Starting Claude Haiku code analysis..."
+        npm run analyze:ci
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
+      continue-on-error: true
+    
+    - name: Parse analysis results
+      id: parse-results
+      run: |
+        if [ -f "claude-ci-results.json" ]; then
+          echo "📊 Parsing analysis results..."
+          
+          # Extract values using jq
+          SCORE=$(jq -r '.avgScore' claude-ci-results.json)
+          STATUS=$(jq -r '.exitCode' claude-ci-results.json)
+          CRITICAL_ERRORS=$(jq -r '.results | map(select(.status == "fail")) | length' claude-ci-results.json)
+          WARNINGS=$(jq -r '.results | map(select(.status == "warn")) | length' claude-ci-results.json)
+          
+          echo "score=$SCORE" >> $GITHUB_OUTPUT
+          echo "status=$STATUS" >> $GITHUB_OUTPUT
+          echo "critical_errors=$CRITICAL_ERRORS" >> $GITHUB_OUTPUT
+          echo "warnings=$WARNINGS" >> $GITHUB_OUTPUT
+          echo "has_results=true" >> $GITHUB_OUTPUT
+          
+          echo "✅ Analysis completed:"
+          echo "  Score: $SCORE/10"
+          echo "  Critical Errors: $CRITICAL_ERRORS"
+          echo "  Warnings: $WARNINGS"
+          echo "  Exit Code: $STATUS"
+        else
+          echo "has_results=false" >> $GITHUB_OUTPUT
+          echo "❌ No analysis results found"
+        fi
+    
+    - name: Upload analysis results
+      uses: actions/upload-artifact@v4
+      if: steps.parse-results.outputs.has_results == 'true'
+      with:
+        name: claude-analysis-results
+        path: claude-ci-results.json
+        retention-days: 30
+    
+    - name: Comment on PR
+      if: github.event_name == 'pull_request' && steps.parse-results.outputs.has_results == 'true'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          
+          // Read analysis results
+          const results = JSON.parse(fs.readFileSync('claude-ci-results.json', 'utf8'));
+          
+          // Create comment
+          const comment = `## 🤖 Claude Haiku Code Analysis Results
+          
+          **Overall Score:** ${results.avgScore.toFixed(1)}/10
+          **Status:** ${results.exitCode === 0 ? '✅ Pass' : results.exitCode === 1 ? '⚠️ Warnings' : '❌ Critical Issues'}
+          
+          ### Summary
+          - **Files Analyzed:** ${results.results.length}
+          - **Critical Errors:** ${results.critical_errors}
+          - **Warnings:** ${results.warnings}
+          
+          ### Detailed Results
+          ${results.results.map(result => `
+          #### ${result.status === 'pass' ? '✅' : result.status === 'warn' ? '⚠️' : '❌'} ${result.filePath}
+          - **Score:** ${result.score}/10
+          - **Summary:** ${result.summary}
+          ${result.critical_errors.length > 0 ? `- **Critical Errors:** ${result.critical_errors.join(', ')}` : ''}
+          ${result.warnings.length > 0 ? `- **Warnings:** ${result.warnings.join(', ')}` : ''}
+          `).join('')}
+          
+          ---
+          *Analysis performed by Claude Haiku 4.5 via AWS Bedrock*
+          *Generated on ${new Date(results.timestamp).toLocaleString()}*`;
+          
+          // Post comment
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: comment
+          });
+    
+    - name: Create Issue for Critical Errors
+      if: steps.parse-results.outputs.has_results == 'true' && steps.parse-results.outputs.status == '2'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          const results = JSON.parse(fs.readFileSync('claude-ci-results.json', 'utf8'));
+          
+          // Check if issue already exists
+          const existingIssues = await github.rest.issues.listForRepo({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            labels: 'claude-analysis,critical-error',
+            state: 'open'
+          });
+          
+          if (existingIssues.data.length === 0) {
+            // Create new issue
+            const criticalFiles = results.results.filter(r => r.status === 'fail');
+            
+            const issueBody = `## 🚨 Critical Code Issues Detected
+          
+          Claude Haiku analysis found critical errors that need immediate attention:
+          
+          ### Files with Critical Errors:
+          ${criticalFiles.map(file => `
+          - **${file.filePath}** (Score: ${file.score}/10)
+            - ${file.summary}
+            - Critical Errors: ${file.critical_errors.join(', ')}
+          `).join('')}
+          
+          ### Recommended Actions:
+          1. Review the failing files listed above
+          2. Fix critical errors before merging
+          3. Re-run the analysis to verify fixes
+          
+          ---
+          *This issue was automatically created by Claude Haiku Code Analysis*
+          *Commit: ${context.sha}*`;
+          
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: '🚨 Critical Code Issues Detected by Claude Analysis',
+              body: issueBody,
+              labels: ['claude-analysis', 'critical-error', 'bug']
+            });
+          }
+    
+    - name: Set status check
+      if: always()
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const status = '${{ steps.parse-results.outputs.status }}';
+          const score = '${{ steps.parse-results.outputs.score }}';
+          const criticalErrors = '${{ steps.parse-results.outputs.critical_errors }}';
+          const warnings = '${{ steps.parse-results.outputs.warnings }}';
+          
+          let conclusion = 'success';
+          let summary = `Claude Analysis Passed (Score: ${score}/10)`;
+          
+          if (status === '2') {
+            conclusion = 'failure';
+            summary = `Claude Analysis Failed - ${criticalErrors} critical errors found`;
+          } else if (status === '1') {
+            conclusion = 'neutral';
+            summary = `Claude Analysis Warning - ${warnings} warnings found (Score: ${score}/10)`;
+          }
+          
+          await github.rest.checks.create({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            name: 'Claude Haiku Code Analysis',
+            head_sha: context.sha,
+            status: 'completed',
+            conclusion: conclusion,
+            output: {
+              title: summary,
+              summary: `Analyzed codebase with Claude Haiku 4.5. Score: ${score}/10, Critical Errors: ${criticalErrors}, Warnings: ${warnings}`
+            }
+          });
+    
+    - name: Notify on failure
+      if: failure()
+      uses: actions/github-script@v7
+      with:
+        script: |
+          console.log('❌ Claude analysis workflow failed');
+          console.log('Check the logs for details');

@@ -6,6 +6,7 @@ A modern, intuitive web application for creating and managing AWS Bedrock AI age
 ![React](https://img.shields.io/badge/React-19.1.0-61DAFB?style=for-the-badge&logo=react)
 ![Vite](https://img.shields.io/badge/Vite-6.3.5-646CFF?style=for-the-badge&logo=vite)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind-4.1.7-38B2AC?style=for-the-badge&logo=tailwind-css)
+![Claude AI](https://img.shields.io/badge/Claude-Haiku-FF6B35?style=for-the-badge&logo=anthropic)
 
 ## ✨ Features
 
@@ -27,6 +28,13 @@ A modern, intuitive web application for creating and managing AWS Bedrock AI age
 - **Dark Mode Support** - Automatic theme detection
 - **Smooth Animations** - Polished user experience with Framer Motion
 - **Intuitive Interface** - Step-by-step agent creation workflow
+
+### 🤖 AI-Powered Code Analysis
+- **Claude Haiku Integration** - Automated code error detection and analysis
+- **Real-time Analysis** - File watching with instant feedback
+- **CI/CD Integration** - GitHub Actions workflow for automated quality checks
+- **Security Scanning** - Vulnerability detection and security recommendations
+- **Performance Optimization** - Code efficiency analysis and suggestions
 
 ## 🚀 Quick Start
 
@@ -166,6 +174,14 @@ bedrock-agent-builder/
 │   ├── App.jsx              # Main application component
 │   ├── App.css              # Global styles
 │   └── main.jsx             # Application entry point
+├── scripts/                 # Claude analysis scripts
+│   ├── claude-code-analyzer.js    # Full codebase analysis
+│   ├── claude-ci-analyzer.js      # CI/CD analysis
+│   ├── claude-watch-analyzer.js   # File watcher
+│   └── setup-claude-analysis.js   # Setup script
+├── .github/workflows/       # GitHub Actions
+│   └── claude-code-analysis.yml   # Automated analysis workflow
+├── server.js                # Express.js backend with Claude integration
 ├── public/                  # Static assets
 ├── index.html              # HTML template
 ├── vite.config.js          # Vite configuration
@@ -221,29 +237,50 @@ Edit `src/App.css` to modify the color palette:
 }
 ```
 
-## 🔌 AWS Integration (Coming Soon)
+## 🔌 AWS Integration
 
-Currently, this application uses simulated data for demonstration purposes. To connect to actual AWS Bedrock services:
+This application includes full AWS Bedrock integration with Claude Haiku for code analysis:
 
-1. **Set up AWS credentials** (never expose these client-side!)
-2. **Create a backend API** using:
-   - AWS Lambda + API Gateway
-   - Vercel Serverless Functions
-   - Express.js server
-3. **Update API calls** in components to use real endpoints
-4. **Add environment variables** for configuration
+### Backend API
+- **Express.js Server** - Full REST API for AWS Bedrock integration
+- **Agent Management** - Create, list, and manage Bedrock agents
+- **Model Access** - List available foundation models
+- **Claude Analysis** - AI-powered code analysis endpoints
+
+### Setup AWS Credentials
+1. Create a `.env` file with your AWS credentials:
+   ```env
+   AWS_ACCESS_KEY_ID=your_access_key_here
+   AWS_SECRET_ACCESS_KEY=your_secret_key_here
+   AWS_REGION=us-east-1
+   ```
+
+2. Request model access in AWS Bedrock Console:
+   - Claude 3.5 Haiku: `anthropic.claude-3-5-haiku-20241022-v2:0`
+   - Claude 3 Haiku: `anthropic.claude-3-haiku-20240307-v1:0`
+
+3. Start the server:
+   ```bash
+   npm run server
+   ```
 
 ## 📝 Available Scripts
 
+### Development
 - `pnpm dev` / `npm run dev` - Start development server
 - `pnpm build` / `npm run build` - Build for production
 - `pnpm preview` / `npm run preview` - Preview production build
 - `pnpm lint` / `npm run lint` - Run ESLint
 
+### Claude Code Analysis
+- `npm run analyze` - Full codebase analysis with Claude Haiku
+- `npm run analyze:ci` - Quick CI/CD optimized analysis
+- `npm run analyze:watch` - Real-time file watching and analysis
+
 ## 🐛 Known Issues
 
-- Currently uses simulated data (AWS integration pending)
 - Session memory is not persisted (client-side only)
+- Claude analysis requires AWS Bedrock model access
 
 ## 🤝 Contributing
 
@@ -278,6 +315,6 @@ If you have any questions or need help, please:
 
 ---
 
-**Built with ❤️ using AWS Bedrock and React**
+**Built with ❤️ using AWS Bedrock, Claude Haiku, and React**
 
 ⭐ Star this repository if you find it helpful!
