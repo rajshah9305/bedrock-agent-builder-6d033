@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import Dashboard from './Dashboard'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -57,114 +58,116 @@ const AgentList = ({ agents, setAgents }) => {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <Card className="border-2 shadow-lg">
-        <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30">
-          <CardTitle className="flex items-center gap-2">
-            <Bot className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-            Your Agents
-          </CardTitle>
-          <CardDescription>
-            Manage and monitor your deployed AI agents
-            {agents.length > 0 && (
-              <Badge variant="secondary" className="ml-2">
-                {agents.length} {agents.length === 1 ? 'agent' : 'agents'}
-              </Badge>
-            )}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="pt-6">
-          {agents.length === 0 ? (
-            <div className="text-center py-12">
-              <Bot className="w-16 h-16 mx-auto mb-4 text-muted-foreground opacity-50" />
-              <h3 className="text-lg font-semibold mb-2">No agents yet</h3>
-              <p className="text-muted-foreground mb-4">
-                Create your first agent to get started
-              </p>
+      <Dashboard agents={agents} />
+      
+      {agents.length === 0 ? (
+        <Card className="glass-effect border-0 shadow-xl">
+          <CardContent className="text-center py-16">
+            <div className="animate-float">
+              <Bot className="w-24 h-24 mx-auto mb-6 text-purple-400 opacity-60" />
             </div>
-          ) : (
-            <div className="space-y-4">
-              {agents.map(agent => (
-                <Card key={agent.agentId} className="border-2 hover:shadow-lg transition-all">
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1 space-y-3">
-                        <div className="flex items-start gap-3">
-                          <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                            <Bot className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-                          </div>
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <h3 className="text-lg font-bold">{agent.agentName}</h3>
-                              <Badge variant="outline" className={`${getStatusColor(agent.status)} text-white border-0`}>
-                                {agent.status}
-                              </Badge>
-                            </div>
-                            {agent.description && (
-                              <p className="text-sm text-muted-foreground">{agent.description}</p>
-                            )}
-                          </div>
+            <h3 className="text-2xl font-bold mb-3 gradient-text">No agents yet</h3>
+            <p className="text-muted-foreground text-lg mb-6">
+              Create your first intelligent agent to get started
+            </p>
+            <div className="w-32 h-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full mx-auto" />
+          </CardContent>
+        </Card>
+      ) : (
+        <>
+          <div className="flex items-center justify-center mb-6">
+            <div className="flex items-center gap-3 px-6 py-3 glass-effect rounded-2xl shadow-xl">
+              <div className="p-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl">
+                <Bot className="w-6 h-6 text-white" />
+              </div>
+              <h2 className="text-2xl font-bold gradient-text">
+                Your AI Agents
+              </h2>
+            </div>
+          </div>
+          
+          <div className="symmetry-grid">
+            {agents.map((agent, index) => (
+              <Card key={agent.agentId} className="glass-effect border-0 shadow-xl hover-lift interactive-card animate-slide-up" style={{animationDelay: `${index * 0.1}s`}}>
+                <CardContent className="p-6">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1 space-y-3">
+                      <div className="flex items-start gap-3">
+                        <div className="p-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl shadow-lg animate-float">
+                          <Bot className="w-5 h-5 text-white" />
                         </div>
-
-                        <div className="flex flex-wrap gap-2 text-xs">
-                          <Badge variant="secondary" className="gap-1">
-                            <Brain className="w-3 h-3" />
-                            {agent.foundationModel.split('/').pop()}
-                          </Badge>
-                          {agent.tools.length > 0 && (
-                            <Badge variant="secondary" className="gap-1">
-                              <Wrench className="w-3 h-3" />
-                              {agent.tools.length} {agent.tools.length === 1 ? 'tool' : 'tools'}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-2">
+                            <h3 className="font-bold text-lg truncate gradient-text">{agent.agentName}</h3>
+                            <Badge className={`${getStatusColor(agent.status)} text-white border-0 text-xs px-2 py-1 animate-pulse`}>
+                              {agent.status}
                             </Badge>
+                          </div>
+                          {agent.description && (
+                            <p className="text-sm text-muted-foreground line-clamp-2">{agent.description}</p>
                           )}
-                          <Badge variant="secondary" className="gap-1">
-                            <Calendar className="w-3 h-3" />
-                            Created {formatDate(agent.createdAt)}
-                          </Badge>
-                        </div>
-
-                        <div className="pt-2 border-t">
-                          <p className="text-xs text-muted-foreground font-mono">
-                            Agent ID: {agent.agentId}
-                          </p>
                         </div>
                       </div>
 
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
-                            <MoreVertical className="w-4 h-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => handleViewDetails(agent)}>
-                            <Eye className="w-4 h-4 mr-2" />
-                            View Details
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <Play className="w-4 h-4 mr-2" />
-                            Test Agent
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <Pause className="w-4 h-4 mr-2" />
-                            Pause Agent
-                          </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            onClick={() => handleDeleteAgent(agent.agentId)}
-                            className="text-destructive focus:text-destructive"
-                          >
-                            <Trash2 className="w-4 h-4 mr-2" />
-                            Delete Agent
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      <div className="flex flex-wrap gap-2">
+                        <Badge className="bg-gradient-to-r from-emerald-500 to-green-500 text-white text-xs px-2 py-1">
+                          <Brain className="w-3 h-3 mr-1" />
+                          {agent.foundationModel.split('/').pop().split('-')[0]}
+                        </Badge>
+                        {agent.tools.length > 0 && (
+                          <Badge className="bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs px-2 py-1">
+                            <Wrench className="w-3 h-3 mr-1" />
+                            {agent.tools.length} tools
+                          </Badge>
+                        )}
+                        <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs px-2 py-1">
+                          <Calendar className="w-3 h-3 mr-1" />
+                          {formatDate(agent.createdAt).split(',')[0]}
+                        </Badge>
+                      </div>
+
+                      <div className="p-2 bg-gradient-to-r from-slate-50 to-gray-50 dark:from-slate-800 dark:to-gray-800 rounded-lg">
+                        <p className="text-xs text-muted-foreground font-mono truncate">
+                          ID: {agent.agentId}
+                        </p>
+                      </div>
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-purple-100 dark:hover:bg-purple-900/20 transition-all duration-200 hover:scale-110">
+                          <MoreVertical className="w-4 h-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="glass-effect border-0 shadow-xl">
+                        <DropdownMenuItem onClick={() => handleViewDetails(agent)} className="gap-2">
+                          <Eye className="w-4 h-4" />
+                          View Details
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => window.dispatchEvent(new CustomEvent('switchToOutput', { detail: agent }))} className="gap-2">
+                          <Play className="w-4 h-4" />
+                          Run Agent
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="gap-2">
+                          <Pause className="w-4 h-4" />
+                          Pause Agent
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onClick={() => handleDeleteAgent(agent.agentId)}
+                          className="text-red-500 focus:text-red-700 gap-2"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          Delete Agent
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </>
+      )}
 
       <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
         <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">

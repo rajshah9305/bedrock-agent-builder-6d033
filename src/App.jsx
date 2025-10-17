@@ -1,63 +1,106 @@
 import { useState } from 'react'
 import AgentBuilder from './components/AgentBuilder'
 import AgentList from './components/AgentList'
-import { Bot, List, Sparkles } from 'lucide-react'
+import AgentOutput from './components/AgentOutput'
+import { Bot, List, Sparkles, Zap, Play } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import './App.css'
 
 function App() {
   const [activeTab, setActiveTab] = useState('create')
   const [agents, setAgents] = useState([])
+  const [selectedAgentForRun, setSelectedAgentForRun] = useState(null)
+
+  // Listen for agent run requests from other components
+  useState(() => {
+    const handleSwitchToOutput = (event) => {
+      setSelectedAgentForRun(event.detail)
+      setActiveTab('output')
+    }
+    
+    window.addEventListener('switchToOutput', handleSwitchToOutput)
+    return () => window.removeEventListener('switchToOutput', handleSwitchToOutput)
+  }, [])
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-950 dark:via-blue-950 dark:to-indigo-950">
-      <header className="border-b bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm sticky top-0 z-50 shadow-sm">
-        <div className="container mx-auto px-4 py-4">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-indigo-950 dark:to-purple-950 animate-gradient">
+      {/* Floating Background Elements */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-gradient-to-r from-purple-400/20 to-pink-400/20 rounded-full blur-3xl animate-float" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-gradient-to-r from-blue-400/20 to-cyan-400/20 rounded-full blur-3xl animate-float" style={{animationDelay: '1s'}} />
+        <div className="absolute top-1/2 left-1/2 w-48 h-48 bg-gradient-to-r from-indigo-400/20 to-purple-400/20 rounded-full blur-3xl animate-float" style={{animationDelay: '2s'}} />
+      </div>
+
+      <header className="relative border-b border-white/20 glass-effect sticky top-0 z-50 shadow-xl">
+        <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="relative">
-                <Bot className="w-10 h-10 text-blue-600 dark:text-blue-400" />
-                <Sparkles className="w-4 h-4 text-yellow-500 absolute -top-1 -right-1 animate-pulse" />
+            <div className="flex items-center gap-4">
+              <div className="relative group">
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl blur opacity-75 group-hover:opacity-100 transition duration-300 animate-pulse-glow" />
+                <div className="relative p-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl shadow-lg transform group-hover:scale-105 transition-all duration-300">
+                  <Bot className="w-8 h-8 text-white" />
+                  <Sparkles className="w-4 h-4 text-yellow-300 absolute -top-1 -right-1 animate-bounce" />
+                </div>
               </div>
-              <div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">
-                  AWS Bedrock Agent Builder
+              <div className="space-y-1">
+                <h1 className="text-2xl font-bold gradient-text animate-shimmer">
+                  RAJ AI AGENTS
                 </h1>
-                <p className="text-sm text-muted-foreground">Create and manage intelligent AI agents</p>
+                <p className="text-sm text-muted-foreground font-medium">Next-gen AI agent creation platform</p>
               </div>
             </div>
-            <nav className="flex gap-2">
-              <Button
-                variant={activeTab === 'create' ? 'default' : 'ghost'}
-                onClick={() => setActiveTab('create')}
-                className="gap-2"
-              >
-                <Sparkles className="w-4 h-4" />
-                Create Agent
-              </Button>
-              <Button
-                variant={activeTab === 'manage' ? 'default' : 'ghost'}
-                onClick={() => setActiveTab('manage')}
-                className="gap-2"
-              >
-                <List className="w-4 h-4" />
-                Manage Agents
-              </Button>
-            </nav>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-emerald-500 to-green-500 rounded-full shadow-lg animate-pulse-glow">
+                <Zap className="w-4 h-4 text-white animate-bounce" />
+                <span className="text-sm font-bold text-white">Live</span>
+              </div>
+            </div>
           </div>
         </div>
       </header>
       
-      <main className="container mx-auto px-4 py-8">
-        {activeTab === 'create' && <AgentBuilder agents={agents} setAgents={setAgents} />}
-        {activeTab === 'manage' && <AgentList agents={agents} setAgents={setAgents} />}
+      <main className="relative container mx-auto px-6 py-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <div className="perfect-center mb-8">
+            <TabsList className="grid grid-cols-3 p-1 glass-effect rounded-2xl shadow-xl border border-white/20">
+              <TabsTrigger 
+                value="create" 
+                className="gap-2 rounded-xl transition-all duration-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-pink-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:transform data-[state=active]:scale-105"
+              >
+                <Sparkles className="w-4 h-4" />
+                Create
+              </TabsTrigger>
+              <TabsTrigger 
+                value="manage" 
+                className="gap-2 rounded-xl transition-all duration-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-cyan-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:transform data-[state=active]:scale-105"
+              >
+                <List className="w-4 h-4" />
+                Manage ({agents.length})
+              </TabsTrigger>
+              <TabsTrigger 
+                value="output" 
+                className="gap-2 rounded-xl transition-all duration-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-600 data-[state=active]:to-green-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:transform data-[state=active]:scale-105"
+              >
+                <Play className="w-4 h-4" />
+                Run & Output
+              </TabsTrigger>
+            </TabsList>
+          </div>
+          
+          <TabsContent value="create" className="mt-0 animate-fade-in">
+            <AgentBuilder agents={agents} setAgents={setAgents} />
+          </TabsContent>
+          
+          <TabsContent value="manage" className="mt-0 animate-fade-in">
+            <AgentList agents={agents} setAgents={setAgents} />
+          </TabsContent>
+          
+          <TabsContent value="output" className="mt-0 animate-fade-in">
+            <AgentOutput agents={agents} selectedAgent={selectedAgentForRun} onAgentChange={setSelectedAgentForRun} />
+          </TabsContent>
+        </Tabs>
       </main>
-
-      <footer className="border-t bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm mt-16">
-        <div className="container mx-auto px-4 py-6 text-center text-sm text-muted-foreground">
-          <p>Built with AWS Bedrock • Powered by AI</p>
-        </div>
-      </footer>
     </div>
   )
 }

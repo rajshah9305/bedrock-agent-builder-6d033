@@ -48,70 +48,67 @@ const ActionGroupBuilder = ({ actionGroups, onActionGroupsChange }) => {
   }
 
   return (
-    <Card className="border-2 shadow-lg">
-      <CardHeader className="bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-950/30 dark:to-purple-950/30">
-        <CardTitle className="flex items-center gap-2">
-          <Settings className="w-5 h-5 text-violet-600 dark:text-violet-400" />
-          Action Groups
+    <Card className="glass-effect border-0 shadow-lg hover-lift gradient-border animate-slide-up action-group-card">
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2 text-base">
+          <div className="p-1.5 bg-gradient-to-r from-violet-500 to-purple-500 rounded-lg shadow-md">
+            <Settings className="w-4 h-4 text-white" />
+          </div>
+          <span className="gradient-text">Action Groups ({actionGroups.length})</span>
         </CardTitle>
-        <CardDescription>
-          Define custom actions your agent can perform via API integrations
-          {actionGroups.length > 0 && (
-            <Badge variant="secondary" className="ml-2">
-              {actionGroups.length} configured
-            </Badge>
-          )}
-        </CardDescription>
       </CardHeader>
-      <CardContent className="pt-6 space-y-4">
-        <div className="space-y-3">
-          {actionGroups.map(ag => (
+      <CardContent className="space-y-3">
+        <div className="space-y-2">
+          {actionGroups.slice(0, 2).map(ag => (
             <div
               key={ag.id}
-              className="p-4 border-2 border-violet-200 dark:border-violet-800 rounded-lg bg-violet-50/50 dark:bg-violet-950/20"
+              className="p-2 border-2 border-violet-200 dark:border-violet-700 rounded-lg bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-900/20 dark:to-purple-900/20 hover:shadow-md transition-all duration-300"
             >
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex-1 space-y-1">
-                  <div className="flex items-center gap-2">
-                    <Code className="w-4 h-4 text-violet-600 dark:text-violet-400" />
-                    <h4 className="font-semibold">{ag.name}</h4>
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <Code className="w-3 h-3 text-violet-600 dark:text-violet-400 flex-shrink-0 animate-float" />
+                    <h4 className="font-bold text-xs truncate text-violet-800 dark:text-violet-200">{ag.name}</h4>
                   </div>
-                  <p className="text-sm text-muted-foreground">{ag.description}</p>
-                  {ag.lambdaArn && (
-                    <p className="text-xs text-muted-foreground font-mono bg-background/50 p-1 rounded">
-                      Lambda: {ag.lambdaArn}
-                    </p>
-                  )}
+                  <p className="text-xs text-violet-600 dark:text-violet-300 truncate">{ag.description}</p>
                 </div>
                 <Button
                   variant="ghost"
-                  size="icon"
+                  size="sm"
                   onClick={() => handleRemoveActionGroup(ag.id)}
-                  className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                  className="h-6 w-6 p-0 text-red-500 hover:text-red-700 hover:bg-red-100 dark:hover:bg-red-900/20 transition-all duration-200 hover:scale-110"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <Trash2 className="w-3 h-3" />
                 </Button>
               </div>
             </div>
           ))}
         </div>
 
+        {actionGroups.length > 2 && (
+          <div className="text-center">
+            <button className="text-sm text-violet-600 dark:text-violet-400 hover:text-violet-800 dark:hover:text-violet-200 transition-colors font-medium hover:scale-105 transform duration-200">
+              +{actionGroups.length - 2} more action groups
+            </button>
+          </div>
+        )}
+
         {actionGroups.length === 0 && (
-          <div className="text-center py-8 text-muted-foreground bg-muted/30 rounded-lg">
-            <Settings className="w-12 h-12 mx-auto mb-2 opacity-50" />
-            <p className="text-sm">No action groups configured</p>
-            <p className="text-xs">Action groups allow your agent to call custom APIs</p>
+          <div className="text-center py-4 bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-900/20 dark:to-purple-900/20 rounded-xl border border-violet-200 dark:border-violet-700">
+            <p className="text-sm text-violet-700 dark:text-violet-300 font-medium">
+              No action groups configured
+            </p>
           </div>
         )}
 
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button variant="outline" className="w-full gap-2 border-dashed border-2 hover:border-violet-500 hover:bg-violet-50 dark:hover:bg-violet-950/30">
-              <Plus className="w-4 h-4" />
+            <Button className="w-full gap-1.5 text-sm h-9 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white border-0 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105">
+              <Plus className="w-3.5 h-3.5" />
               Add Action Group
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="dialog-content-responsive">
             <DialogHeader>
               <DialogTitle>Create Action Group</DialogTitle>
               <DialogDescription>

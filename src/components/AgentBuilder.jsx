@@ -220,157 +220,208 @@ const AgentBuilder = ({ agents, setAgents }) => {
   return (
     <div className="space-y-6 animate-fade-in">
       {!useRealAPI && (
-        <Card className="border-yellow-200 bg-yellow-50 dark:bg-yellow-950/20 dark:border-yellow-800">
-          <CardContent className="pt-6">
-            <p className="text-sm text-yellow-800 dark:text-yellow-200">
-              ⚠️ Running in <strong>Simulated Mode</strong>. Configure your API endpoint in .env to connect to real AWS Bedrock.
-            </p>
-          </CardContent>
-        </Card>
+        <div className="relative overflow-hidden bg-gradient-to-r from-amber-400/20 to-orange-400/20 border border-amber-300/50 rounded-2xl p-4 glass-effect animate-bounce-in">
+          <div className="absolute inset-0 bg-gradient-to-r from-amber-400/10 to-orange-400/10 animate-shimmer" />
+          <p className="relative text-sm text-amber-800 dark:text-amber-200 flex items-center gap-3 font-medium">
+            <span className="text-2xl animate-bounce">⚠️</span>
+            <span><strong>Simulated Mode</strong> - Configure API endpoint in .env for live AWS Bedrock</span>
+          </p>
+        </div>
       )}
 
-      <Card className="border-2 shadow-lg">
-        <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30">
-          <CardTitle className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-            Basic Configuration
-          </CardTitle>
-          <CardDescription>Define your agent's identity and purpose</CardDescription>
-        </CardHeader>
-        <CardContent className="pt-6 space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="agentName">Agent Name *</Label>
-            <Input
-              id="agentName"
-              value={agentConfig.agentName}
-              onChange={(e) => setAgentConfig({...agentConfig, agentName: e.target.value})}
-              placeholder="e.g., Customer Support Agent"
-              className="transition-all focus:scale-[1.01]"
+      <div className="symmetry-grid">
+        {/* Left Column - Basic Config */}
+        <div className="lg:col-span-2 space-y-6">
+          <Card className="glass-effect border-0 shadow-lg hover-lift gradient-border animate-slide-up">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <div className="p-1.5 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg shadow-md">
+                  <Sparkles className="w-4 h-4 text-white" />
+                </div>
+                <span className="gradient-text">Basic Configuration</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="agentName" className="text-xs font-semibold text-purple-700 dark:text-purple-300">Agent Name *</Label>
+                  <Input
+                    id="agentName"
+                    value={agentConfig.agentName}
+                    onChange={(e) => setAgentConfig({...agentConfig, agentName: e.target.value})}
+                    placeholder="Customer Support Agent"
+                    className="h-9 text-sm border-2 border-purple-200 dark:border-purple-700 focus:border-purple-500 transition-all duration-300 hover:shadow-md"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="sessionTimeout" className="text-xs font-semibold text-purple-700 dark:text-purple-300">Session Timeout (sec)</Label>
+                  <Input
+                    id="sessionTimeout"
+                    type="number"
+                    value={agentConfig.idleSessionTTL}
+                    onChange={(e) => setAgentConfig({...agentConfig, idleSessionTTL: parseInt(e.target.value)})}
+                    min={300}
+                    max={86400}
+                    className="h-9 text-sm border-2 border-purple-200 dark:border-purple-700 focus:border-purple-500 transition-all duration-300 hover:shadow-md"
+                  />
+                </div>
+              </div>
+              
+              <div className="space-y-1.5">
+                <Label htmlFor="description" className="text-xs font-semibold text-purple-700 dark:text-purple-300">Description</Label>
+                <Textarea
+                  id="description"
+                  value={agentConfig.description}
+                  onChange={(e) => setAgentConfig({...agentConfig, description: e.target.value})}
+                  placeholder="Describe your agent's capabilities and purpose"
+                  rows={2}
+                  className="resize-none text-sm border-2 border-purple-200 dark:border-purple-700 focus:border-purple-500 transition-all duration-300 hover:shadow-md"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="instructions" className="text-xs font-semibold text-purple-700 dark:text-purple-300">Instructions *</Label>
+                <Textarea
+                  id="instructions"
+                  value={agentConfig.instructions}
+                  onChange={(e) => setAgentConfig({...agentConfig, instructions: e.target.value})}
+                  placeholder="Define your agent's behavior, tone, and response patterns..."
+                  rows={3}
+                  className="resize-none text-sm border-2 border-purple-200 dark:border-purple-700 focus:border-purple-500 transition-all duration-300 hover:shadow-md"
+                />
+              </div>
+              
+              <div className="flex items-center space-x-2 p-2.5 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-lg border border-purple-200 dark:border-purple-700 hover:shadow-md transition-all duration-300">
+                <Checkbox
+                  id="sessionMemory"
+                  checked={agentConfig.memoryConfiguration.enabledMemoryTypes.includes('SESSION_SUMMARY')}
+                  onCheckedChange={(checked) => {
+                    const types = checked ? ['SESSION_SUMMARY'] : []
+                    setAgentConfig({
+                      ...agentConfig, 
+                      memoryConfiguration: { enabledMemoryTypes: types }
+                    })
+                  }}
+                  className="border-2 border-purple-300 data-[state=checked]:bg-purple-600"
+                />
+                <label htmlFor="sessionMemory" className="text-xs font-semibold cursor-pointer text-purple-700 dark:text-purple-300">
+                  Enable Session Memory
+                </label>
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <ToolSelector
+              selectedTools={agentConfig.tools}
+              onToolsChange={(tools) => setAgentConfig({...agentConfig, tools})}
+              availableTools={availableTools}
+            />
+            
+            <KnowledgeBaseSelector
+              selectedKnowledgeBases={agentConfig.knowledgeBases}
+              onKnowledgeBasesChange={(knowledgeBases) => setAgentConfig({...agentConfig, knowledgeBases})}
             />
           </div>
+          
+          <ActionGroupBuilder
+            actionGroups={agentConfig.actionGroups}
+            onActionGroupsChange={(actionGroups) => setAgentConfig({...agentConfig, actionGroups})}
+          />
+          
 
-          <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              value={agentConfig.description}
-              onChange={(e) => setAgentConfig({...agentConfig, description: e.target.value})}
-              placeholder="Describe what your agent does and its main capabilities"
-              rows={3}
-              className="transition-all focus:scale-[1.01]"
+        </div>
+
+        {/* Right Column - Model & Preview */}
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <ModelSelector
+              selectedModel={agentConfig.foundationModel}
+              onModelSelect={(model) => setAgentConfig({...agentConfig, foundationModel: model})}
+              availableModels={availableModels}
             />
+            
+            {/* Agent Preview Card */}
+            <Card className="glass-effect border-0 shadow-lg animate-slide-up gradient-border">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <div className="p-1.5 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-lg shadow-md">
+                    <CheckCircle2 className="w-4 h-4 text-white" />
+                  </div>
+                  <span className="gradient-text">Preview</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="space-y-3">
+                <div className="p-3 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg border border-blue-200 dark:border-blue-700">
+                  <p className="text-xs font-semibold text-blue-800 dark:text-blue-200 mb-1">Agent Name</p>
+                  <p className="text-xs text-muted-foreground truncate">
+                    {agentConfig.agentName || 'Not specified'}
+                  </p>
+                </div>
+                
+                <div className="p-3 bg-gradient-to-r from-emerald-50 to-green-50 dark:from-emerald-900/20 dark:to-green-900/20 rounded-lg border border-emerald-200 dark:border-emerald-700">
+                  <p className="text-xs font-semibold text-emerald-800 dark:text-emerald-200 mb-1">Foundation Model</p>
+                  <p className="text-xs text-muted-foreground truncate">
+                    {agentConfig.foundationModel ? agentConfig.foundationModel.split('/').pop().split('-')[0] : 'Not selected'}
+                  </p>
+                </div>
+                
+                <div className="p-3 bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 rounded-lg border border-orange-200 dark:border-orange-700">
+                  <p className="text-xs font-semibold text-orange-800 dark:text-orange-200 mb-1">Tools</p>
+                  <div className="flex flex-wrap gap-1">
+                    {agentConfig.tools.length > 0 ? (
+                      agentConfig.tools.slice(0, 2).map(tool => (
+                        <span key={tool} className="text-xs bg-orange-200 dark:bg-orange-800 px-1.5 py-0.5 rounded text-xs">
+                          {tool.replace('_', ' ')}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-xs text-muted-foreground">None</span>
+                    )}
+                    {agentConfig.tools.length > 2 && (
+                      <span className="text-xs text-muted-foreground">+{agentConfig.tools.length - 2}</span>
+                    )}
+                  </div>
+                </div>
+                
+                <div className="p-3 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-lg border border-purple-200 dark:border-purple-700">
+                  <p className="text-xs font-semibold text-purple-800 dark:text-purple-200 mb-1">Knowledge</p>
+                  <p className="text-xs text-muted-foreground">
+                    {agentConfig.knowledgeBases.length > 0 ? `${agentConfig.knowledgeBases.length} bases` : 'None'}
+                  </p>
+                </div>
+                
+                <div className="p-3 bg-gradient-to-r from-cyan-50 to-blue-50 dark:from-cyan-900/20 dark:to-blue-900/20 rounded-lg border border-cyan-200 dark:border-cyan-700">
+                  <p className="text-xs font-semibold text-cyan-800 dark:text-cyan-200 mb-1">Actions</p>
+                  <p className="text-xs text-muted-foreground">
+                    {agentConfig.actionGroups.length > 0 ? `${agentConfig.actionGroups.length} groups` : 'None'}
+                  </p>
+                </div>
+              </div>
+              </CardContent>
+            </Card>
           </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="instructions">Instructions *</Label>
-            <Textarea
-              id="instructions"
-              value={agentConfig.instructions}
-              onChange={(e) => setAgentConfig({...agentConfig, instructions: e.target.value})}
-              placeholder="Provide detailed instructions for your agent's behavior, tone, and how it should respond to users..."
-              rows={6}
-              className="transition-all focus:scale-[1.01]"
-            />
-            <p className="text-xs text-muted-foreground">
-              Be specific about the agent's role, constraints, and expected behavior patterns.
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-
-      <ModelSelector
-        selectedModel={agentConfig.foundationModel}
-        onModelSelect={(model) => setAgentConfig({...agentConfig, foundationModel: model})}
-        availableModels={availableModels}
-      />
-
-      <ToolSelector
-        selectedTools={agentConfig.tools}
-        onToolsChange={(tools) => setAgentConfig({...agentConfig, tools})}
-        availableTools={availableTools}
-      />
-
-      <ActionGroupBuilder
-        actionGroups={agentConfig.actionGroups}
-        onActionGroupsChange={(actionGroups) => setAgentConfig({...agentConfig, actionGroups})}
-      />
-
-      <KnowledgeBaseSelector
-        selectedKnowledgeBases={agentConfig.knowledgeBases}
-        onKnowledgeBasesChange={(knowledgeBases) => setAgentConfig({...agentConfig, knowledgeBases})}
-      />
-
-      <Card className="border-2 shadow-lg">
-        <CardHeader className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30">
-          <CardTitle>Advanced Settings</CardTitle>
-          <CardDescription>Fine-tune your agent's behavior and memory</CardDescription>
-        </CardHeader>
-        <CardContent className="pt-6 space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="sessionTimeout">Session Timeout (seconds)</Label>
-            <Input
-              id="sessionTimeout"
-              type="number"
-              value={agentConfig.idleSessionTTL}
-              onChange={(e) => setAgentConfig({...agentConfig, idleSessionTTL: parseInt(e.target.value)})}
-              min={300}
-              max={86400}
-              className="transition-all focus:scale-[1.01]"
-            />
-            <p className="text-xs text-muted-foreground">
-              Time in seconds before an idle session expires (300-86400)
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            <Label>Memory Configuration</Label>
-            <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-accent/50 transition-colors">
-              <Checkbox
-                id="sessionMemory"
-                checked={agentConfig.memoryConfiguration.enabledMemoryTypes.includes('SESSION_SUMMARY')}
-                onCheckedChange={(checked) => {
-                  const types = checked ? ['SESSION_SUMMARY'] : []
-                  setAgentConfig({
-                    ...agentConfig, 
-                    memoryConfiguration: { enabledMemoryTypes: types }
-                  })
-                }}
-              />
-              <label
-                htmlFor="sessionMemory"
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-              >
-                Enable Session Memory
-              </label>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Allow the agent to remember context within a session for better continuity
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card className="border-2 border-blue-200 dark:border-blue-800 shadow-lg sticky bottom-4 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm">
-        <CardContent className="pt-6">
+          
           <Button
             onClick={handleCreateAgent}
             disabled={!agentConfig.agentName || !agentConfig.instructions || !agentConfig.foundationModel || isCreating}
-            className="w-full h-12 text-lg gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 transition-all hover:scale-[1.02] active:scale-[0.98]"
+            className="w-full h-10 gap-2 text-sm font-semibold bg-gradient-to-r from-purple-600 via-pink-600 to-red-500 hover:from-purple-700 hover:via-pink-700 hover:to-red-600 transition-all duration-300 hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl animate-gradient"
           >
             {isCreating ? (
               <>
-                <Loader2 className="w-5 h-5 animate-spin" />
-                Creating Agent...
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Creating...
               </>
             ) : (
               <>
-                <CheckCircle2 className="w-5 h-5" />
-                Create Agent {useRealAPI ? '(Live)' : '(Simulated)'}
+                <CheckCircle2 className="w-4 h-4" />
+                Create Agent
               </>
             )}
           </Button>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   )
 }

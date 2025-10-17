@@ -55,71 +55,68 @@ const KnowledgeBaseSelector = ({ selectedKnowledgeBases, onKnowledgeBasesChange 
   }
 
   return (
-    <Card className="border-2 shadow-lg">
-      <CardHeader className="bg-gradient-to-r from-cyan-50 to-blue-50 dark:from-cyan-950/30 dark:to-blue-950/30">
-        <CardTitle className="flex items-center gap-2">
-          <BookOpen className="w-5 h-5 text-cyan-600 dark:text-cyan-400" />
-          Knowledge Bases
+    <Card className="glass-effect border-0 shadow-lg hover-lift gradient-border animate-slide-up">
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2 text-base">
+          <div className="p-1.5 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-lg shadow-md">
+            <BookOpen className="w-4 h-4 text-white" />
+          </div>
+          <span className="gradient-text">Knowledge ({selectedKnowledgeBases.length})</span>
         </CardTitle>
-        <CardDescription>
-          Connect knowledge bases to provide your agent with domain-specific information
-          {selectedKnowledgeBases.length > 0 && (
-            <Badge variant="secondary" className="ml-2">
-              {selectedKnowledgeBases.length} connected
-            </Badge>
-          )}
-        </CardDescription>
       </CardHeader>
-      <CardContent className="pt-6 space-y-3">
-        {availableKnowledgeBases.map(kb => {
+      <CardContent className="space-y-2">
+        {availableKnowledgeBases.slice(0, 3).map(kb => {
           const isSelected = selectedKnowledgeBases.includes(kb.id)
           return (
             <div
               key={kb.id}
               onClick={() => toggleKnowledgeBase(kb.id)}
               className={`
-                p-4 border-2 rounded-lg cursor-pointer transition-all
+                interactive-card p-2 rounded-lg border-2 transition-all duration-300
                 ${isSelected 
-                  ? 'border-cyan-500 bg-cyan-50 dark:bg-cyan-950/30 shadow-md' 
-                  : 'border-border hover:border-cyan-300 hover:bg-accent/50'
+                  ? 'border-cyan-500 bg-gradient-to-r from-cyan-50 to-blue-50 dark:from-cyan-900/30 dark:to-blue-900/30 shadow-md neon-glow' 
+                  : 'border-cyan-200 dark:border-cyan-700 hover:border-cyan-400 hover:bg-gradient-to-r hover:from-cyan-50/50 hover:to-blue-50/50 dark:hover:from-cyan-900/10 dark:hover:to-blue-900/10'
                 }
               `}
             >
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex-1 space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Database className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
-                    <h4 className="font-semibold">{kb.name}</h4>
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <Database className="w-3 h-3 text-cyan-600 dark:text-cyan-400 flex-shrink-0 animate-float" />
+                    <h4 className="font-bold text-xs truncate text-cyan-800 dark:text-cyan-200">{kb.name}</h4>
                   </div>
-                  <p className="text-sm text-muted-foreground">{kb.description}</p>
-                  <div className="flex flex-wrap gap-2 text-xs">
-                    <Badge variant="outline" className="gap-1">
-                      <Database className="w-3 h-3" />
-                      {kb.vectorStore}
+                  <div className="flex gap-1">
+                    <Badge className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-xs px-1.5 py-0.5">
+                      {kb.documents.toLocaleString()} docs
                     </Badge>
-                    <Badge variant="outline">
-                      {kb.documents.toLocaleString()} documents
-                    </Badge>
-                    <Badge variant="outline">
-                      Updated {kb.lastUpdated}
+                    <Badge variant="outline" className="text-xs px-1.5 py-0.5 border-cyan-300 text-cyan-700 dark:text-cyan-300">
+                      {kb.vectorStore.split(' ')[0]}
                     </Badge>
                   </div>
                 </div>
                 {isSelected && (
-                  <div className="flex-shrink-0">
-                    <div className="w-6 h-6 rounded-full bg-cyan-600 flex items-center justify-center">
-                      <Check className="w-4 h-4 text-white" />
-                    </div>
+                  <div className="w-5 h-5 rounded-full bg-gradient-to-r from-cyan-600 to-blue-600 flex items-center justify-center flex-shrink-0 shadow-md animate-bounce-in">
+                    <Check className="w-3 h-3 text-white" />
                   </div>
                 )}
               </div>
             </div>
           )
         })}
+        
+        {availableKnowledgeBases.length > 3 && (
+          <div className="text-center">
+            <button className="text-sm text-cyan-600 dark:text-cyan-400 hover:text-cyan-800 dark:hover:text-cyan-200 transition-colors font-medium hover:scale-105 transform duration-200">
+              +{availableKnowledgeBases.length - 3} more knowledge bases
+            </button>
+          </div>
+        )}
 
         {selectedKnowledgeBases.length === 0 && (
-          <div className="text-center py-4 text-sm text-muted-foreground bg-muted/30 rounded-lg mt-4">
-            No knowledge bases connected. Your agent will rely on its foundation model's training data.
+          <div className="text-center py-4 bg-gradient-to-r from-cyan-50 to-blue-50 dark:from-cyan-900/20 dark:to-blue-900/20 rounded-xl border border-cyan-200 dark:border-cyan-700">
+            <p className="text-sm text-cyan-700 dark:text-cyan-300 font-medium">
+              No knowledge bases connected
+            </p>
           </div>
         )}
       </CardContent>
