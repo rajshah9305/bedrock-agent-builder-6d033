@@ -44,14 +44,11 @@ const AgentBuilder = ({ agents, setAgents }) => {
 
   const checkAPIAvailability = async () => {
     try {
-      const apiUrl = import.meta.env.VITE_API_BASE_URL
-      if (apiUrl && apiUrl.includes('localhost:3001')) {
-        // Try to ping the health endpoint
-        const response = await fetch(`${apiUrl}/health`)
-        if (response.ok) {
-          setUseRealAPI(true)
-          return
-        }
+      const apiUrl = import.meta.env.VITE_API_BASE_URL || '/api'
+      const response = await fetch(`${apiUrl}/health`)
+      if (response.ok) {
+        setUseRealAPI(true)
+        return
       }
     } catch (error) {
       console.log('API not available, using simulated mode')
