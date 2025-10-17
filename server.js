@@ -11,40 +11,145 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// Validate required environment variables
+const requiredEnvVars = ['AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY', 'AWS_REGION'];
+const missingEnvVars = requiredEnvVars.filter(envVar => !process.env[envVar]);
+
+if (missingEnvVars.length > 0) {
+  console.warn(`⚠️  Warning: Missing environment variables: ${missingEnvVars.join(', ')}`);
+  console.warn('   The application will run in simulation mode for development.');
+}
+
 // Middleware
-app.use(cors());
-app.use(express.json());
+app.use(cors({
+  origin: process.env.NODE_ENV === 'production' 
+    ? ['https://bedrock-agent-builder.vercel.app', 'https://raj-ai-agents.vercel.app']
+    : true,
+  credentials: true
+}));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// AWS Clients
-const bedrockAgentClient = new BedrockAgentClient({
-  region: process.env.AWS_REGION,
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  },
+// Request logging middleware
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+  next();
 });
 
-const bedrockClient = new BedrockClient({
-  region: process.env.AWS_REGION,
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  },
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error('Server Error:', err);
+  res.status(500).json({ 
+    error: 'Internal Server Error', 
+    message: process.env.NODE_ENV === 'production' ? 'Something went wrong' : err.message 
+  });
 });
 
-const bedrockRuntimeClient = new BedrockRuntimeClient({
-  region: process.env.AWS_REGION,
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  },
-});
+// AWS Clients (only initialize if credentials are available)
+let bedrockAgentClient, bedrockClient, bedrockRuntimeClient;
+
+if (missingEnvVars.length === 0) {
+  try {
+    bedrockAgentClient = new BedrockAgentClient({
+      region: process.env.AWS_REGION,
+      credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+      },
+    });
+
+    bedrockClient = new BedrockClient({
+      region: process.env.AWS_REGION,
+      credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+      },
+    });
+
+    bedrockRuntimeClient = new BedrockRuntimeClient({
+      region: process.env.AWS_REGION,
+      credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+      },
+    });
+    
+    console.log('✅ AWS Bedrock clients initialized successfully');
+  } catch (error) {
+    console.error('❌ Failed to initialize AWS clients:', error.message);
+  }
+} else {
+  console.log('🔧 Running in simulation mode - AWS clients not initialized');
+}
 
 // Routes
 
 // Get available foundation models
 app.get('/api/models', async (req, res) => {
   try {
+    if (!bedrockClient) {
+      // Return mock models when AWS is not configured
+      const mockModels = [
+        {
+          id: 'anthropic.claude-3-5-sonnet-20241022-v2:0',
+          name: 'Claude 3.5 Sonnet v2',
+          provider: 'Anthropic',
+          description: 'Most intelligent model, best for complex tasks',
+          optimizedForAgents: true,
+          capabilities: ['text', 'vision', 'tool-use'],
+          inputModalities: ['TEXT', 'IMAGE'],
+          outputModalities: ['TEXT']
+        },
+        {
+          id: 'anthropic.claude-3-5-haiku-20241022-v1:0',
+          name: 'Claude 3.5 Haiku',
+          provider: 'Anthropic',
+          description: 'Fast and efficient, great for quick responses',
+          optimizedForAgents: true,
+          capabilities: ['text', 'vision', 'tool-use'],
+          inputModalities: ['TEXT', 'IMAGE'],
+          outputModalities: ['TEXT']
+        },
+        {
+          id: 'anthropic.claude-3-opus-20240229-v1:0',
+          name: 'Claude 3 Opus',
+          provider: 'Anthropic',
+          description: 'Powerful model for complex reasoning',
+          optimizedForAgents: true,
+          capabilities: ['text', 'vision', 'tool-use'],
+          inputModalities: ['TEXT', 'IMAGE'],
+          outputModalities: ['TEXT']
+        },
+        {
+          id: 'meta.llama3-2-90b-instruct-v1:0',
+          name: 'Llama 3.2 90B Instruct',
+          provider: 'Meta',
+          description: 'Open-source model with strong performance',
+          optimizedForAgents: false,
+          capabilities: ['text'],
+          inputModalities: ['TEXT'],
+          outputModalities: ['TEXT']
+        },
+        {
+          id: 'mistral.mistral-large-2402-v1:0',
+          name: 'Mistral Large (24.02)',
+          provider: 'Mistral AI',
+          description: 'European model with multilingual capabilities',
+          optimizedForAgents: false,
+          capabilities: ['text', 'tool-use'],
+          inputModalities: ['TEXT'],
+          outputModalities: ['TEXT']
+        }
+      ];
+      
+      return res.json({ 
+        success: true, 
+        models: mockModels,
+        simulation: true,
+        message: 'Running in simulation mode - using mock data'
+      });
+    }
+
     const command = new ListFoundationModelsCommand({});
     const response = await bedrockClient.send(command);
     
@@ -59,10 +164,14 @@ app.get('/api/models', async (req, res) => {
         optimizedForAgents: model.inputModalities.includes('TEXT') && model.outputModalities.includes('TEXT')
       }));
 
-    res.json({ success: true, models });
+    res.json({ success: true, models, simulation: false });
   } catch (error) {
     console.error('Error fetching models:', error);
-    res.status(500).json({ error: 'Failed to fetch models', message: error.message });
+    res.status(500).json({ 
+      error: 'Failed to fetch models', 
+      message: error.message,
+      simulation: true
+    });
   }
 });
 
@@ -71,9 +180,41 @@ app.post('/api/agents/create', async (req, res) => {
   try {
     const { agentName, description, instructions, foundationModel, idleSessionTTL, tags } = req.body;
 
+    // Validation
     if (!agentName || !instructions || !foundationModel) {
       return res.status(400).json({
         error: 'Missing required fields: agentName, instructions, and foundationModel'
+      });
+    }
+
+    if (agentName.length > 100) {
+      return res.status(400).json({
+        error: 'Agent name must be 100 characters or less'
+      });
+    }
+
+    if (instructions.length > 2000) {
+      return res.status(400).json({
+        error: 'Instructions must be 2000 characters or less'
+      });
+    }
+
+    if (!bedrockAgentClient) {
+      // Simulation mode - return mock response
+      const mockAgent = {
+        agentId: `agent-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        agentArn: `arn:aws:bedrock:${process.env.AWS_REGION || 'us-east-1'}:123456789012:agent/${agentName.toLowerCase().replace(/\s+/g, '-')}`,
+        agentName,
+        agentStatus: 'PREPARED',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+
+      return res.json({
+        success: true,
+        agent: mockAgent,
+        simulation: true,
+        message: 'Agent created in simulation mode'
       });
     }
 
@@ -97,11 +238,31 @@ app.post('/api/agents/create', async (req, res) => {
         agentStatus: response.agent.agentStatus,
         createdAt: response.agent.createdAt,
         updatedAt: response.agent.updatedAt,
-      }
+      },
+      simulation: false
     });
   } catch (error) {
     console.error('Error creating agent:', error);
-    res.status(500).json({ error: 'Failed to create agent', message: error.message });
+    
+    // Handle specific AWS errors
+    if (error.name === 'ValidationException') {
+      return res.status(400).json({ 
+        error: 'Validation Error', 
+        message: error.message 
+      });
+    }
+    
+    if (error.name === 'AccessDeniedException') {
+      return res.status(403).json({ 
+        error: 'Access Denied', 
+        message: 'Insufficient permissions to create agents' 
+      });
+    }
+
+    res.status(500).json({ 
+      error: 'Failed to create agent', 
+      message: error.message 
+    });
   }
 });
 
@@ -109,6 +270,17 @@ app.post('/api/agents/create', async (req, res) => {
 app.get('/api/agents/list', async (req, res) => {
   try {
     const { maxResults = 10, nextToken } = req.query;
+
+    if (!bedrockAgentClient) {
+      // Simulation mode - return empty list
+      return res.json({
+        success: true,
+        agents: [],
+        nextToken: null,
+        simulation: true,
+        message: 'Running in simulation mode - no agents available'
+      });
+    }
 
     const command = new ListAgentsCommand({
       maxResults: parseInt(maxResults),
@@ -121,10 +293,15 @@ app.get('/api/agents/list', async (req, res) => {
       success: true,
       agents: response.agentSummaries || [],
       nextToken: response.nextToken || null,
+      simulation: false
     });
   } catch (error) {
     console.error('Error listing agents:', error);
-    res.status(500).json({ error: 'Failed to list agents', message: error.message });
+    res.status(500).json({ 
+      error: 'Failed to list agents', 
+      message: error.message,
+      simulation: true
+    });
   }
 });
 

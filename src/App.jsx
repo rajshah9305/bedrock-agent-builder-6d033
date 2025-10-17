@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import AgentBuilder from './components/AgentBuilder'
 import AgentList from './components/AgentList'
 import AgentOutput from './components/AgentOutput'
+import ErrorBoundary from './components/ErrorBoundary'
 import { Bot, List, Sparkles, Zap, Play } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -13,7 +14,7 @@ function App() {
   const [selectedAgentForRun, setSelectedAgentForRun] = useState(null)
 
   // Listen for agent run requests from other components
-  useState(() => {
+  useEffect(() => {
     const handleSwitchToOutput = (event) => {
       setSelectedAgentForRun(event.detail)
       setActiveTab('output')
@@ -24,7 +25,8 @@ function App() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-indigo-950 dark:to-purple-950 animate-gradient">
+    <ErrorBoundary>
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-indigo-950 dark:to-purple-950 animate-gradient">
       {/* Floating Background Elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-gradient-to-r from-purple-400/20 to-pink-400/20 rounded-full blur-3xl animate-float" />
@@ -101,7 +103,8 @@ function App() {
           </TabsContent>
         </Tabs>
       </main>
-    </div>
+      </div>
+    </ErrorBoundary>
   )
 }
 

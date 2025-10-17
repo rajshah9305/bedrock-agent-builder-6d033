@@ -8,11 +8,19 @@
     "server": "node server.js",
     "dev:full": "concurrently \"npm run server\" \"npm run dev\"",
     "build": "vite build",
-    "lint": "eslint .",
+    "build:server": "echo 'Server build complete'",
+    "build:full": "npm run build && npm run build:server",
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
+    "lint:fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
     "preview": "vite preview",
+    "start": "node server.js",
     "analyze": "node scripts/claude-code-analyzer.js",
     "analyze:watch": "nodemon scripts/claude-code-analyzer.js",
-    "analyze:ci": "node scripts/claude-ci-analyzer.js"
+    "analyze:ci": "node scripts/claude-ci-analyzer.js",
+    "test": "echo 'No tests specified' && exit 0",
+    "test:ci": "npm run lint && npm run build",
+    "clean": "rm -rf dist node_modules/.vite",
+    "postinstall": "echo 'Installation complete! Run npm run dev:full to start development.'"
   },
   "dependencies": {
     "@aws-sdk/client-bedrock": "^3.911.0",

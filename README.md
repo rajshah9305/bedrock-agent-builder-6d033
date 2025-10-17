@@ -1,12 +1,15 @@
-# AWS Bedrock Agent Builder 🤖
+# RAJ AI AGENTS 🤖
 
-A modern, intuitive web application for creating and managing AWS Bedrock AI agents. Built with React, Vite, and shadcn/ui components, this tool provides a visual interface for configuring intelligent AI agents powered by AWS Bedrock's foundation models.
+A production-ready, modern web application for creating and managing AWS Bedrock AI agents. Built with React 19, Vite 6, and shadcn/ui components, this tool provides a comprehensive visual interface for configuring intelligent AI agents powered by AWS Bedrock's foundation models.
 
-![AWS Bedrock Agent Builder](https://img.shields.io/badge/AWS-Bedrock-FF9900?style=for-the-badge&logo=amazon-aws)
-![React](https://img.shields.io/badge/React-19.1.0-61DAFB?style=for-the-badge&logo=react)
-![Vite](https://img.shields.io/badge/Vite-6.3.5-646CFF?style=for-the-badge&logo=vite)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind-4.1.7-38B2AC?style=for-the-badge&logo=tailwind-css)
-![Claude AI](https://img.shields.io/badge/Claude-Haiku-FF6B35?style=for-the-badge&logo=anthropic)
+[![AWS Bedrock Agent Builder](https://img.shields.io/badge/AWS-Bedrock-FF9900?style=for-the-badge&logo=amazon-aws)](https://aws.amazon.com/bedrock/)
+[![React](https://img.shields.io/badge/React-19.1.0-61DAFB?style=for-the-badge&logo=react)](https://react.dev/)
+[![Vite](https://img.shields.io/badge/Vite-6.3.5-646CFF?style=for-the-badge&logo=vite)](https://vitejs.dev/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-4.1.7-38B2AC?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com/)
+[![Claude AI](https://img.shields.io/badge/Claude-Haiku-FF6B35?style=for-the-badge&logo=anthropic)](https://www.anthropic.com/)
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/rajshah9305/bedrock-agent-builder)
+[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/rajshah9305/bedrock-agent-builder)
 
 ## ✨ Features
 
@@ -40,8 +43,10 @@ A modern, intuitive web application for creating and managing AWS Bedrock AI age
 
 ### Prerequisites
 
-- Node.js 18+ or pnpm 10+
-- Git
+- **Node.js 18+** (recommended: Node.js 20+)
+- **pnpm 10+** (recommended) or **npm 9+**
+- **Git**
+- **AWS Account** (for production use)
 
 ### Installation
 
@@ -63,21 +68,63 @@ Using npm:
 npm install
 ```
 
-3. **Start the development server**
+3. **Environment Setup**
 
-Using pnpm:
+Copy the environment template:
 ```bash
+cp env.example .env
+```
+
+Edit `.env` with your configuration:
+```env
+# AWS Bedrock Configuration
+AWS_ACCESS_KEY_ID=your_aws_access_key_here
+AWS_SECRET_ACCESS_KEY=your_aws_secret_key_here
+AWS_REGION=us-east-1
+
+# Claude Model Configuration
+CLAUDE_MODEL_ID=anthropic.claude-3-5-haiku-20241022-v2:0
+CLAUDE_MAX_TOKENS=4000
+CLAUDE_TEMPERATURE=0.1
+
+# Server Configuration
+PORT=3001
+NODE_ENV=development
+
+# Frontend Configuration
+VITE_API_BASE_URL=http://localhost:3001/api
+```
+
+4. **Start the development servers**
+
+**Option A: Full Stack (Recommended)**
+```bash
+# Using pnpm
+pnpm dev:full
+
+# Using npm
+npm run dev:full
+```
+
+**Option B: Separate Terminals**
+```bash
+# Terminal 1 - Backend
+pnpm server
+
+# Terminal 2 - Frontend
 pnpm dev
 ```
 
-Using npm:
-```bash
-npm run dev
-```
-
-4. **Open your browser**
+5. **Open your browser**
 
 Navigate to `http://localhost:5173`
+
+### 🎯 First Run
+
+1. **Simulation Mode**: The app runs in simulation mode by default (no AWS credentials required)
+2. **Create Your First Agent**: Use the "Create" tab to build your first AI agent
+3. **Test Agent**: Switch to "Run & Output" tab to test your agent
+4. **Manage Agents**: Use the "Manage" tab to view and manage all your agents
 
 ## 📦 Build for Production
 

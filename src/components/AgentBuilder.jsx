@@ -40,7 +40,7 @@ const AgentBuilder = ({ agents, setAgents }) => {
     fetchAvailableModels()
     fetchAvailableTools()
     checkAPIAvailability()
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const checkAPIAvailability = async () => {
     try {
@@ -65,8 +65,8 @@ const AgentBuilder = ({ agents, setAgents }) => {
           return
         }
       }
-    } catch (error) {
-      console.log('Failed to fetch real models, using fallback:', error)
+    } catch (_error) {
+      console.log('Failed to fetch real models, using fallback:', _error)
     }
     
     // Fallback to simulated models
